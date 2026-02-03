@@ -11,6 +11,8 @@
 		C74383422F3267A80036FD14 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74383412F3267A80036FD14 /* ContentView.swift */; };
 		C74383442F3267B50036FD14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C74383432F3267B50036FD14 /* Assets.xcassets */; };
 		C74383472F3267B50036FD14 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C74383462F3267B50036FD14 /* Preview Assets.xcassets */; };
+		C7F1EF812F326B2800FE8579 /* TodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F1EF802F326B2800FE8579 /* TodoItem.swift */; };
+		C7F1EF832F326B7800FE8579 /* TodoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F1EF822F326B7800FE8579 /* TodoStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +21,8 @@
 		C74383412F3267A80036FD14 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C74383432F3267B50036FD14 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C74383462F3267B50036FD14 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		C7F1EF802F326B2800FE8579 /* TodoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoItem.swift; sourceTree = "<group>"; };
+		C7F1EF822F326B7800FE8579 /* TodoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +57,8 @@
 			children = (
 				C743833F2F3267A80036FD14 /* TinyToDoApp.swift */,
 				C74383412F3267A80036FD14 /* ContentView.swift */,
+				C7F1EF802F326B2800FE8579 /* TodoItem.swift */,
+				C7F1EF822F326B7800FE8579 /* TodoStore.swift */,
 				C74383432F3267B50036FD14 /* Assets.xcassets */,
 				C74383452F3267B50036FD14 /* Preview Content */,
 			);
@@ -138,6 +144,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				C74383422F3267A80036FD14 /* ContentView.swift in Sources */,
+				C7F1EF832F326B7800FE8579 /* TodoStore.swift in Sources */,
+				C7F1EF812F326B2800FE8579 /* TodoItem.swift in Sources */,
 				C74383402F3267A80036FD14 /* TinyToDoApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct TinyToDoApp: App {
+    @StateObject private var store = TodoStore()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(store)
         }
     }
 }
