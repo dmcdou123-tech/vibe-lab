@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Xcode
+DerivedData/
+build/
+*.xcworkspace
+*.xcuserdata
+*.xccheckout
+*.moved-aside
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
