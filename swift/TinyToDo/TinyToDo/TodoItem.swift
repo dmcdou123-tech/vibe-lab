@@ -6,9 +6,33 @@
 //
 import Foundation
 
-struct TodoItem: Identifiable, Codable, Equatable {
-    var id: UUID = UUID()
+enum TodoColor: String, CaseIterable, Identifiable, Codable {
+    case gray, red, orange, yellow, green, blue
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .gray: return "Gray"
+        case .red: return "Red"
+        case .orange: return "Orange"
+        case .yellow: return "Yellow"
+        case .green: return "Green"
+        case .blue: return "Blue"
+        }
+    }
+}
+
+struct TodoItem: Identifiable, Codable {
+    let id: UUID
     var title: String
-    var isDone: Bool = false
-    var createdAt: Date = Date()
+    var isCompleted: Bool
+    var color: TodoColor
+
+    init(id: UUID = UUID(), title: String, isCompleted: Bool = false, color: TodoColor = .blue) {
+        self.id = id
+        self.title = title
+        self.isCompleted = isCompleted
+        self.color = color
+    }
 }
