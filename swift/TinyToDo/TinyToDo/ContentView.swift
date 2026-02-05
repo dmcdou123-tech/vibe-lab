@@ -19,7 +19,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 categoryPillBar
 
                 // Add row
@@ -60,6 +60,8 @@ struct ContentView: View {
                 }
                 .listStyle(.plain)
             }
+            .frame(maxWidth: 700)
+            .frame(maxWidth: .infinity, alignment: .center)
             .navigationTitle("TinyToDo")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -108,16 +110,18 @@ struct ContentView: View {
                         selectedCategoryId = category.id
                     } label: {
                         Text(category.name)
-                            .font(.subheadline.weight(isSelected ? .semibold : .regular))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 7)
-                            .foregroundStyle(isSelected ? .primary : .secondary)
-                            .background(isSelected ? Color.accentColor.opacity(0.18) : Color(.secondarySystemBackground))
+                            .font(.callout.weight(isSelected ? .semibold : .regular))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .foregroundStyle(isSelected ? Color.accentColor : Color.primary)
+                            .background(isSelected ? Color.accentColor.opacity(0.16) : Color(.secondarySystemBackground))
                             .overlay(
                                 Capsule()
-                                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 1)
+                                    .stroke(isSelected ? Color.accentColor.opacity(0.8) : Color(.tertiarySystemFill), lineWidth: 1)
                             )
                             .clipShape(Capsule())
+                            .frame(minHeight: 34)
+                            .contentShape(Capsule())
                     }
                     .buttonStyle(.plain)
                 }
@@ -127,17 +131,21 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 14, weight: .bold))
-                        .padding(.horizontal, 10)
+                        .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .foregroundStyle(.secondary)
                         .background(Color(.secondarySystemBackground))
                         .clipShape(Capsule())
+                        .frame(minHeight: 34)
+                        .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
             }
             .padding(.horizontal)
-            .padding(.top, 10)
+            .padding(.top, 12)
+            .padding(.bottom, 4)
         }
+        .animation(.easeInOut(duration: 0.15), value: selectedCategoryId)
     }
 }
 
@@ -184,12 +192,13 @@ private struct TodoRow: View {
                             .foregroundStyle(itemColor)
                     }
                 }
-                .frame(width: 22, height: 22)
+                .frame(width: 24, height: 24)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(item.title)
                         .foregroundStyle(.primary)
                         .strikethrough(item.isCompleted, color: .secondary)
+                        .font(.body)
 
                     Text(item.color.displayName)
                         .font(.caption)
@@ -201,10 +210,10 @@ private struct TodoRow: View {
                 // Color dot
                 Circle()
                     .fill(itemColor)
-                    .frame(width: 10, height: 10)
+                    .frame(width: 9, height: 9)
             }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 10)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 12)
             .background(tintBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
