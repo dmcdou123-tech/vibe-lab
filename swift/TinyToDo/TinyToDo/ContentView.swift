@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @EnvironmentObject private var store: TodoStore
+    @Environment(\.editMode) private var editMode
 
     @State private var newTaskTitle: String = ""
     @State private var selectedColor: TodoColor = .blue
@@ -16,6 +18,7 @@ struct ContentView: View {
     @State private var isAddCategoryPresented: Bool = false
     @State private var isManageCategoriesPresented: Bool = false
     @State private var newCategoryName: String = ""
+    @State private var didSetInitialCategory: Bool = false
 
     var body: some View {
         NavigationView {
@@ -26,10 +29,13 @@ struct ContentView: View {
                 HStack(spacing: 10) {
                     TextField("New task...", text: $newTaskTitle)
                         .textFieldStyle(.roundedBorder)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            addTaskIfPossible()
+                        }
 
                     Button("Add") {
-                        store.add(title: newTaskTitle, color: selectedColor, categoryId: selectedCategoryId)
-                        newTaskTitle = ""
+                        addTaskIfPossible()
                     }
                 }
                 .padding(.horizontal)
@@ -52,13 +58,16 @@ struct ContentView: View {
                         }
                     }
                     .onDelete { offsets in
+                        dismissKeyboard()
                         store.deleteFiltered(at: offsets, categoryId: selectedCategoryId)
                     }
                     .onMove { source, destination in
+                        dismissKeyboard()
                         store.moveFiltered(from: source, to: destination, categoryId: selectedCategoryId)
                     }
                 }
                 .listStyle(.plain)
+                .scrollDismissesKeyboard(.interactively)
             }
             .frame(maxWidth: 700)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -70,6 +79,12 @@ struct ContentView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Manage") {
                         isManageCategoriesPresented = true
+                    }
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        dismissKeyboard()
                     }
                 }
             }
@@ -94,17 +109,36 @@ struct ContentView: View {
                     .environmentObject(store)
             }
             .onReceive(store.$categories) { categories in
-                if categories.contains(where: { $0.id == selectedCategoryId }) == false {
-                    selectedCategoryId = store.uncategorizedId
+                if !didSetInitialCategory {
+                    if let first = categories.first(where: { !$0.isUncategorized }) {
+                        selectedCategoryId = first.id
+                    } else {
+                        selectedCategoryId = store.uncategorizedId
+                    }
+                    didSetInitialCategory = true
+                } else if categories.contains(where: { $0.id == selectedCategoryId }) == false {
+                    if let first = categories.first(where: { !$0.isUncategorized }) {
+                        selectedCategoryId = first.id
+                    } else {
+                        selectedCategoryId = store.uncategorizedId
+                    }
                 }
             }
+            .onChange(of: editMode?.wrappedValue) { mode in
+                if mode?.isEditing == true {
+                    dismissKeyboard()
+                }
+            }
+            .simultaneousGesture(TapGesture().onEnded {
+                dismissKeyboard()
+            })
         }
     }
 
     private var categoryPillBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(store.sortedCategories) { category in
+                ForEach(displayCategories) { category in
                     let isSelected = selectedCategoryId == category.id
                     Button {
                         selectedCategoryId = category.id
@@ -146,6 +180,26 @@ struct ContentView: View {
             .padding(.bottom, 4)
         }
         .animation(.easeInOut(duration: 0.15), value: selectedCategoryId)
+    }
+
+    private var displayCategories: [Category] {
+        let nonUncategorized = store.sortedCategories.filter { !$0.isUncategorized }
+        if let uncategorized = store.sortedCategories.first(where: { $0.isUncategorized }) {
+            return nonUncategorized + [uncategorized]
+        }
+        return nonUncategorized
+    }
+
+    private func addTaskIfPossible() {
+        let trimmed = newTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        store.add(title: trimmed, color: selectedColor, categoryId: selectedCategoryId)
+        newTaskTitle = ""
+        dismissKeyboard()
+    }
+
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 
