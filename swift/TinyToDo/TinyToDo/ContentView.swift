@@ -12,10 +12,15 @@ struct ContentView: View {
 
     @State private var newTaskTitle: String = ""
     @State private var selectedColor: TodoColor = .blue
+    @State private var selectedCategoryId: UUID = Category.uncategorizedId
+    @State private var isAddCategoryPresented: Bool = false
+    @State private var isManageCategoriesPresented: Bool = false
+    @State private var newCategoryName: String = ""
 
     var body: some View {
         NavigationView {
             VStack(spacing: 12) {
+                categoryPillBar
 
                 // Add row
                 HStack(spacing: 10) {
@@ -23,7 +28,7 @@ struct ContentView: View {
                         .textFieldStyle(.roundedBorder)
 
                     Button("Add") {
-                        store.add(title: newTaskTitle, color: selectedColor)
+                        store.add(title: newTaskTitle, color: selectedColor, categoryId: selectedCategoryId)
                         newTaskTitle = ""
                     }
                 }
@@ -41,19 +46,120 @@ struct ContentView: View {
 
                 // List
                 List {
-                    ForEach(store.items) { item in
+                    ForEach(store.items(for: selectedCategoryId)) { item in
                         TodoRow(item: item) {
                             store.toggle(item)
                         }
                     }
-                    .onDelete(perform: store.delete)
-                    .onMove(perform: store.move)
+                    .onDelete { offsets in
+                        store.deleteFiltered(at: offsets, categoryId: selectedCategoryId)
+                    }
+                    .onMove { source, destination in
+                        store.moveFiltered(from: source, to: destination, categoryId: selectedCategoryId)
+                    }
                 }
                 .listStyle(.plain)
             }
             .navigationTitle("TinyToDo")
             .toolbar {
-                EditButton()
+                ToolbarItem(placement: .navigationBarLeading) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Manage") {
+                        isManageCategoriesPresented = true
+                    }
+                }
+            }
+            .sheet(isPresented: $isAddCategoryPresented) {
+                AddCategorySheet(
+                    name: $newCategoryName,
+                    onAdd: {
+                        if let newId = store.addCategory(name: newCategoryName) {
+                            selectedCategoryId = newId
+                        }
+                        newCategoryName = ""
+                        isAddCategoryPresented = false
+                    },
+                    onCancel: {
+                        newCategoryName = ""
+                        isAddCategoryPresented = false
+                    }
+                )
+            }
+            .sheet(isPresented: $isManageCategoriesPresented) {
+                ManageCategoriesView()
+                    .environmentObject(store)
+            }
+            .onReceive(store.$categories) { categories in
+                if categories.contains(where: { $0.id == selectedCategoryId }) == false {
+                    selectedCategoryId = store.uncategorizedId
+                }
+            }
+        }
+    }
+
+    private var categoryPillBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(store.sortedCategories) { category in
+                    let isSelected = selectedCategoryId == category.id
+                    Button {
+                        selectedCategoryId = category.id
+                    } label: {
+                        Text(category.name)
+                            .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .foregroundStyle(isSelected ? .primary : .secondary)
+                            .background(isSelected ? Color.accentColor.opacity(0.18) : Color(.secondarySystemBackground))
+                            .overlay(
+                                Capsule()
+                                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 1)
+                            )
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Button {
+                    isAddCategoryPresented = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .bold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .foregroundStyle(.secondary)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal)
+            .padding(.top, 10)
+        }
+    }
+}
+
+private struct AddCategorySheet: View {
+    @Binding var name: String
+    let onAdd: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationView {
+            Form {
+                TextField("Category name", text: $name)
+            }
+            .navigationTitle("New Category")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { onCancel() }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Add") { onAdd() }
+                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
             }
         }
     }

@@ -11,6 +11,8 @@
 		C74383422F3267A80036FD14 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74383412F3267A80036FD14 /* ContentView.swift */; };
 		C74383442F3267B50036FD14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C74383432F3267B50036FD14 /* Assets.xcassets */; };
 		C74383472F3267B50036FD14 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C74383462F3267B50036FD14 /* Preview Assets.xcassets */; };
+		C7C4A6B82F4B8B4E00D7A6C1 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7C4A6B72F4B8B4E00D7A6C1 /* Category.swift */; };
+		C7C4A6BA2F4B8B6A00D7A6C1 /* ManageCategoriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7C4A6B92F4B8B6A00D7A6C1 /* ManageCategoriesView.swift */; };
 		C7F1EF812F326B2800FE8579 /* TodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F1EF802F326B2800FE8579 /* TodoItem.swift */; };
 		C7F1EF832F326B7800FE8579 /* TodoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F1EF822F326B7800FE8579 /* TodoStore.swift */; };
 /* End PBXBuildFile section */
@@ -21,6 +23,8 @@
 		C74383412F3267A80036FD14 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C74383432F3267B50036FD14 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C74383462F3267B50036FD14 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		C7C4A6B72F4B8B4E00D7A6C1 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
+		C7C4A6B92F4B8B6A00D7A6C1 /* ManageCategoriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageCategoriesView.swift; sourceTree = "<group>"; };
 		C7F1EF802F326B2800FE8579 /* TodoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoItem.swift; sourceTree = "<group>"; };
 		C7F1EF822F326B7800FE8579 /* TodoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -57,6 +61,8 @@
 			children = (
 				C743833F2F3267A80036FD14 /* TinyToDoApp.swift */,
 				C74383412F3267A80036FD14 /* ContentView.swift */,
+				C7C4A6B72F4B8B4E00D7A6C1 /* Category.swift */,
+				C7C4A6B92F4B8B6A00D7A6C1 /* ManageCategoriesView.swift */,
 				C7F1EF802F326B2800FE8579 /* TodoItem.swift */,
 				C7F1EF822F326B7800FE8579 /* TodoStore.swift */,
 				C74383432F3267B50036FD14 /* Assets.xcassets */,
@@ -101,7 +107,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1420;
-				LastUpgradeCheck = 1420;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					C743833B2F3267A80036FD14 = {
 						CreatedOnToolsVersion = 14.2;
@@ -143,7 +149,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7C4A6B82F4B8B4E00D7A6C1 /* Category.swift in Sources */,
 				C74383422F3267A80036FD14 /* ContentView.swift in Sources */,
+				C7C4A6BA2F4B8B6A00D7A6C1 /* ManageCategoriesView.swift in Sources */,
 				C7F1EF832F326B7800FE8579 /* TodoStore.swift in Sources */,
 				C7F1EF812F326B2800FE8579 /* TodoItem.swift in Sources */,
 				C74383402F3267A80036FD14 /* TinyToDoApp.swift in Sources */,
@@ -187,8 +195,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 39WPKB482L;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -208,6 +218,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -247,8 +258,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 39WPKB482L;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -261,6 +274,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
@@ -275,7 +289,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TinyToDo/Preview Content\"";
-				DEVELOPMENT_TEAM = 39WPKB482L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -304,7 +317,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TinyToDo/Preview Content\"";
-				DEVELOPMENT_TEAM = 39WPKB482L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
