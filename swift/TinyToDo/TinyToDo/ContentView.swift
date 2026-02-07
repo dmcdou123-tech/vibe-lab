@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var editTitle: String = ""
     @State private var editDueDate: Date? = nil
     @State private var isEditPresented: Bool = false
+    @State private var editColor: TodoColor = .blue
 
     var body: some View {
         NavigationView {
@@ -169,6 +170,15 @@ struct ContentView: View {
                                 editDueDate = nil
                             }
                         }
+
+                        Section("Color") {
+                            Picker("Color", selection: $editColor) {
+                                ForEach(TodoColor.allCases) { color in
+                                    Text(color.displayName).tag(color)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                        }
                     }
                     .navigationTitle("Edit Task")
                     .toolbar {
@@ -282,6 +292,7 @@ struct ContentView: View {
         editingItem = item
         editTitle = item.title
         editDueDate = item.dueDate
+        editColor = item.color
         isEditPresented = true
     }
 
@@ -292,7 +303,7 @@ struct ContentView: View {
 
     private func saveEdit() {
         guard let target = editingItem else { return }
-        store.updateItem(id: target.id, title: editTitle, dueDate: editDueDate)
+        store.updateItem(id: target.id, title: editTitle, dueDate: editDueDate, color: editColor)
         isEditPresented = false
         editingItem = nil
     }
@@ -388,9 +399,13 @@ private struct TodoRow: View {
 
             Spacer()
 
-            Circle()
-                .fill(itemColor)
-                .frame(width: 9, height: 9)
+            Button(action: onEdit) {
+                Circle()
+                    .fill(itemColor)
+                    .frame(width: 16, height: 16)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 12)
@@ -398,7 +413,6 @@ private struct TodoRow: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .contentShape(Rectangle())
         .onTapGesture { onToggle() }
-        .onLongPressGesture { onEdit() }
         .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
         .listRowSeparator(.hidden)
     }

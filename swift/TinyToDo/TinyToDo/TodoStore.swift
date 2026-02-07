@@ -32,12 +32,15 @@ final class TodoStore: ObservableObject {
         saveItems()
     }
 
-    func updateItem(id: UUID, title: String, dueDate: Date?) {
+    func updateItem(id: UUID, title: String, dueDate: Date?, color: TodoColor? = nil) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         guard let idx = items.firstIndex(where: { $0.id == id }) else { return }
         items[idx].title = trimmed
         items[idx].dueDate = dueDate
+        if let color = color {
+            items[idx].color = color
+        }
         debugLog("Update item '\(id)' title='\(trimmed)' due='\(dueDate?.description ?? "nil")'")
         saveItems()
     }
