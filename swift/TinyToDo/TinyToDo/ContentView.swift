@@ -212,6 +212,21 @@ struct ContentView: View {
     private var categoryPillBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
+                Button {
+                    isAddCategoryPresented = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .bold))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .foregroundStyle(.secondary)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(Capsule())
+                        .frame(minHeight: 34)
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+
                 ForEach(displayCategories) { category in
                     let isSelected = selectedCategoryId == category.id
                     Button {
@@ -233,21 +248,6 @@ struct ContentView: View {
                     }
                     .buttonStyle(.plain)
                 }
-
-                Button {
-                    isAddCategoryPresented = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .bold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .foregroundStyle(.secondary)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(Capsule())
-                        .frame(minHeight: 34)
-                        .contentShape(Capsule())
-                }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal)
             .padding(.top, 12)
