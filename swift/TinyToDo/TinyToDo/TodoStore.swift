@@ -23,11 +23,22 @@ final class TodoStore: ObservableObject {
         categories.sorted { $0.sortOrder < $1.sortOrder }
     }
 
-    func add(title: String, color: TodoColor, categoryId: UUID) {
+    func add(title: String, color: TodoColor, categoryId: UUID, dueDate: Date?) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        let newItem = TodoItem(title: trimmed, color: color, categoryId: categoryId)
+        let newItem = TodoItem(title: trimmed, isCompleted: false, color: color, categoryId: categoryId, dueDate: dueDate)
         items.insert(newItem, at: 0)
+        debugLog("Add item '\(trimmed)' (category: \(categoryId)) due: \(dueDate?.description ?? "nil")")
+        saveItems()
+    }
+
+    func updateItem(id: UUID, title: String, dueDate: Date?) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        guard let idx = items.firstIndex(where: { $0.id == id }) else { return }
+        items[idx].title = trimmed
+        items[idx].dueDate = dueDate
+        debugLog("Update item '\(id)' title='\(trimmed)' due='\(dueDate?.description ?? "nil")'")
         saveItems()
     }
 
@@ -74,20 +85,74 @@ final class TodoStore: ObservableObject {
         saveItems()
     }
 
+    func deleteDisplayed(at offsets: IndexSet, categoryId: UUID) {
+        let displayed = displayItems(for: categoryId)
+        let idsToDelete: [UUID] = offsets.compactMap { idx -> UUID? in
+            guard idx < displayed.count else { return nil }
+            return displayed[idx].id
+        }
+        let indices = items.enumerated().compactMap { idx, element in
+            idsToDelete.contains(element.id) ? idx : nil
+        }
+        items.remove(atOffsets: IndexSet(indices))
+        saveItems()
+    }
+
+    func moveDisplayed(from source: IndexSet, to destination: Int, categoryId: UUID) {
+        var displayed = displayItems(for: categoryId)
+        displayed.move(fromOffsets: source, toOffset: destination)
+
+        var queue = displayed
+        var newItems: [TodoItem] = []
+        for item in items {
+            if item.categoryId == categoryId {
+                guard let next = queue.first else { continue }
+                newItems.append(next)
+                queue.removeFirst()
+            } else {
+                newItems.append(item)
+            }
+        }
+        items = newItems
+        saveItems()
+    }
+
     func items(for categoryId: UUID) -> [TodoItem] {
         items.filter { $0.categoryId == categoryId }
+    }
+
+    func displayItems(for categoryId: UUID) -> [TodoItem] {
+        let filtered = items(for: categoryId)
+        let now = Date()
+        let soonCutoff = Calendar.current.date(byAdding: .day, value: 7, to: now) ?? now
+
+        let dueSoon = filtered
+            .filter { item in
+                guard let due = item.dueDate else { return false }
+                return due <= soonCutoff
+            }
+            .sorted {
+                guard let a = $0.dueDate, let b = $1.dueDate else { return false }
+                return a < b
+            }
+
+        let dueSoonIds = Set(dueSoon.map { $0.id })
+        let remainder = filtered.filter { !dueSoonIds.contains($0.id) }
+        return dueSoon + remainder
     }
 
     @discardableResult
     func addCategory(name: String) -> UUID? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
+        let finalName = uniqueCategoryName(for: trimmed)
         let nextOrder = (categories.map { $0.sortOrder }.max() ?? 0) + 1
         let newId = UUID()
-        let newCategory = Category(id: newId, name: trimmed, sortOrder: nextOrder)
+        let newCategory = Category(id: newId, name: finalName, sortOrder: nextOrder)
         categories.append(newCategory)
         normalizeCategories()
         saveCategories()
+        debugLog("Add category '\(finalName)' id=\(newId)")
         return newId
     }
 
@@ -199,30 +264,61 @@ final class TodoStore: ObservableObject {
         let url = categoriesFileURL()
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         guard let data = try? Data(contentsOf: url) else { return nil }
-        return (try? JSONDecoder().decode([Category].self, from: data)) ?? []
+        if let decoded = try? JSONDecoder().decode([Category].self, from: data) {
+            debugLog("Loaded categories file with \(decoded.count) entries")
+            return decoded
+        }
+        debugLog("Failed to decode categories.json")
+        return []
     }
 
     private func loadItems() -> [TodoItem]? {
         let url = itemsFileURL()
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         guard let data = try? Data(contentsOf: url) else { return nil }
-        return (try? JSONDecoder().decode([TodoItem].self, from: data)) ?? []
+        if let decoded = try? JSONDecoder().decode([TodoItem].self, from: data) {
+            debugLog("Loaded todos file with \(decoded.count) entries")
+            return decoded
+        }
+        debugLog("Failed to decode todos.json")
+        return []
     }
 
     private func saveCategories() {
         let url = categoriesFileURL()
         guard let data = try? JSONEncoder().encode(categories) else { return }
         try? data.write(to: url, options: [.atomic])
+        debugLog("Saved categories count=\(categories.count)")
     }
 
     private func saveItems() {
         let url = itemsFileURL()
         guard let data = try? JSONEncoder().encode(items) else { return }
         try? data.write(to: url, options: [.atomic])
+        debugLog("Saved items count=\(items.count)")
     }
 
     private func saveAll() {
         saveCategories()
         saveItems()
     }
+
+    private func uniqueCategoryName(for name: String) -> String {
+        let lower = name.lowercased()
+        let existing = categories.map { $0.name.lowercased() }
+        if !existing.contains(lower) { return name }
+        var suffix = 2
+        while existing.contains("\(lower) \(suffix)") {
+            suffix += 1
+        }
+        return "\(name) \(suffix)"
+    }
+
+#if DEBUG
+    private func debugLog(_ message: String) {
+        print("[TodoStore] \(message)")
+    }
+#else
+    private func debugLog(_ message: String) { }
+#endif
 }

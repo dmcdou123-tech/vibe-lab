@@ -29,18 +29,21 @@ struct TodoItem: Identifiable, Codable {
     var isCompleted: Bool
     var color: TodoColor
     var categoryId: UUID
+    var dueDate: Date?
 
     init(
         id: UUID = UUID(),
         title: String,
         isCompleted: Bool = false,
         color: TodoColor = .blue,
-        categoryId: UUID
+        categoryId: UUID,
+        dueDate: Date? = nil
     ) {
         self.id = id
         self.title = title
         self.isCompleted = isCompleted
         self.color = color
         self.categoryId = categoryId
+        self.dueDate = dueDate
     }
 }

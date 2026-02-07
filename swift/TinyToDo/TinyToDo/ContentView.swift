@@ -19,6 +19,12 @@ struct ContentView: View {
     @State private var isManageCategoriesPresented: Bool = false
     @State private var newCategoryName: String = ""
     @State private var didSetInitialCategory: Bool = false
+    @State private var newTaskDueDate: Date? = nil
+    @State private var showDueDatePicker: Bool = false
+    @State private var editingItem: TodoItem?
+    @State private var editTitle: String = ""
+    @State private var editDueDate: Date? = nil
+    @State private var isEditPresented: Bool = false
 
     var body: some View {
         NavigationView {
@@ -40,6 +46,41 @@ struct ContentView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top, 10)
+                HStack(spacing: 10) {
+                    Button {
+                        showDueDatePicker.toggle()
+                        if newTaskDueDate == nil {
+                            newTaskDueDate = Date()
+                        }
+                    } label: {
+                        if let due = newTaskDueDate {
+                            Text("Due \(formattedDueDate(due))")
+                        } else {
+                            Text("+ Due Date")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.secondary)
+
+                    if newTaskDueDate != nil {
+                        Button("Clear") {
+                            newTaskDueDate = nil
+                            showDueDatePicker = false
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal)
+
+                if showDueDatePicker {
+                    DatePicker(
+                        "Due date",
+                        selection: newDueDateBinding,
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.graphical)
+                    .padding(.horizontal)
+                }
 
                 // Color picker
                 Picker("Color", selection: $selectedColor) {
@@ -52,18 +93,20 @@ struct ContentView: View {
 
                 // List
                 List {
-                    ForEach(store.items(for: selectedCategoryId)) { item in
+                    ForEach(store.displayItems(for: selectedCategoryId)) { item in
                         TodoRow(item: item) {
                             store.toggle(item)
+                        } onEdit: {
+                            startEditing(item)
                         }
                     }
                     .onDelete { offsets in
                         dismissKeyboard()
-                        store.deleteFiltered(at: offsets, categoryId: selectedCategoryId)
+                        store.deleteDisplayed(at: offsets, categoryId: selectedCategoryId)
                     }
                     .onMove { source, destination in
                         dismissKeyboard()
-                        store.moveFiltered(from: source, to: destination, categoryId: selectedCategoryId)
+                        store.moveDisplayed(from: source, to: destination, categoryId: selectedCategoryId)
                     }
                 }
                 .listStyle(.plain)
@@ -107,6 +150,37 @@ struct ContentView: View {
             .sheet(isPresented: $isManageCategoriesPresented) {
                 ManageCategoriesView()
                     .environmentObject(store)
+            }
+            .sheet(isPresented: $isEditPresented) {
+                NavigationView {
+                    Form {
+                        Section("Title") {
+                            TextField("Task title", text: $editTitle)
+                        }
+
+                        Section("Due Date") {
+                            DatePicker(
+                                "Due",
+                                selection: editDueDateBinding,
+                                displayedComponents: .date
+                            )
+                            .datePickerStyle(.graphical)
+                            Button("Clear Due Date") {
+                                editDueDate = nil
+                            }
+                        }
+                    }
+                    .navigationTitle("Edit Task")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Cancel") { cancelEdit() }
+                        }
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Save") { saveEdit() }
+                                .disabled(editTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        }
+                    }
+                }
             }
             .onReceive(store.$categories) { categories in
                 if !didSetInitialCategory {
@@ -190,11 +264,53 @@ struct ContentView: View {
         return nonUncategorized
     }
 
+    private var newDueDateBinding: Binding<Date> {
+        Binding<Date>(
+            get: { newTaskDueDate ?? Date() },
+            set: { newTaskDueDate = $0 }
+        )
+    }
+
+    private var editDueDateBinding: Binding<Date> {
+        Binding<Date>(
+            get: { editDueDate ?? Date() },
+            set: { editDueDate = $0 }
+        )
+    }
+
+    private func startEditing(_ item: TodoItem) {
+        editingItem = item
+        editTitle = item.title
+        editDueDate = item.dueDate
+        isEditPresented = true
+    }
+
+    private func cancelEdit() {
+        isEditPresented = false
+        editingItem = nil
+    }
+
+    private func saveEdit() {
+        guard let target = editingItem else { return }
+        store.updateItem(id: target.id, title: editTitle, dueDate: editDueDate)
+        isEditPresented = false
+        editingItem = nil
+    }
+
+    private func formattedDueDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
     private func addTaskIfPossible() {
         let trimmed = newTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        store.add(title: trimmed, color: selectedColor, categoryId: selectedCategoryId)
+        store.add(title: trimmed, color: selectedColor, categoryId: selectedCategoryId, dueDate: newTaskDueDate)
         newTaskTitle = ""
+        newTaskDueDate = nil
+        showDueDatePicker = false
         dismissKeyboard()
     }
 
@@ -230,48 +346,59 @@ private struct AddCategorySheet: View {
 private struct TodoRow: View {
     let item: TodoItem
     let onToggle: () -> Void
+    let onEdit: () -> Void
 
     var body: some View {
-        Button(action: onToggle) {
-            HStack(spacing: 12) {
-                // Checkbox-ish circle
-                ZStack {
-                    Circle()
-                        .stroke(lineWidth: 2)
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .stroke(lineWidth: 2)
+                    .foregroundStyle(itemColor)
+
+                if item.isCompleted {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(itemColor)
-
-                    if item.isCompleted {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(itemColor)
-                    }
                 }
-                .frame(width: 24, height: 24)
+            }
+            .frame(width: 24, height: 24)
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(item.title)
-                        .foregroundStyle(.primary)
-                        .strikethrough(item.isCompleted, color: .secondary)
-                        .font(.body)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(item.title)
+                    .foregroundStyle(.primary)
+                    .strikethrough(item.isCompleted, color: .secondary)
+                    .font(.body)
 
+                HStack(spacing: 6) {
                     Text(item.color.displayName)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+
+                    if let due = item.dueDate {
+                        Text(dueIndicator(for: due))
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(dueIndicatorColor(for: due))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(dueIndicatorColor(for: due).opacity(0.12))
+                            .clipShape(Capsule())
+                    }
                 }
-
-                Spacer()
-
-                // Color dot
-                Circle()
-                    .fill(itemColor)
-                    .frame(width: 9, height: 9)
             }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 12)
-            .background(tintBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            Spacer()
+
+            Circle()
+                .fill(itemColor)
+                .frame(width: 9, height: 9)
         }
-        .buttonStyle(.plain)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
+        .background(tintBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .contentShape(Rectangle())
+        .onTapGesture { onToggle() }
+        .onLongPressGesture { onEdit() }
         .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
         .listRowSeparator(.hidden)
     }
@@ -289,5 +416,19 @@ private struct TodoRow: View {
 
     private var tintBackground: some ShapeStyle {
         itemColor.opacity(0.10)
+    }
+
+    private func dueIndicator(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        if date < Date() {
+            return "Overdue"
+        }
+        return "Due \(formatter.string(from: date))"
+    }
+
+    private func dueIndicatorColor(for date: Date) -> Color {
+        return date < Date() ? .red : .orange
     }
 }
