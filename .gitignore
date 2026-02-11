@@ -19,3 +19,6 @@ __pycache__/
 
 # Logs
 *.log
+
+# Local Codex prompts
+/swift/TinyToDo/Codex Prompt — TinyToDo Small UI Polish Pass.md

@@ -21,6 +21,7 @@ struct ContentView: View {
     @State private var didSetInitialCategory: Bool = false
     @State private var newTaskDueDate: Date? = nil
     @State private var showDueDatePicker: Bool = false
+    @State private var isVersionSheetPresented: Bool = false
     @State private var editingItem: TodoItem?
     @State private var editTitle: String = ""
     @State private var editDueDate: Date? = nil
@@ -120,7 +121,12 @@ struct ContentView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     EditButton()
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button {
+                        isVersionSheetPresented = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                    }
                     Button("Manage") {
                         isManageCategoriesPresented = true
                     }
@@ -188,6 +194,26 @@ struct ContentView: View {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button("Save") { saveEdit() }
                                 .disabled(editTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $isVersionSheetPresented) {
+                NavigationView {
+                    Form {
+                        Section("App Version") {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Version \(appVersion.short)")
+                                Text("Build \(appVersion.build)")
+                                    .foregroundStyle(.secondary)
+                                    .font(.subheadline)
+                            }
+                        }
+                    }
+                    .navigationTitle("About TinyToDo")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") { isVersionSheetPresented = false }
                         }
                     }
                 }
@@ -286,6 +312,13 @@ struct ContentView: View {
             get: { editDueDate ?? Date() },
             set: { editDueDate = $0 }
         )
+    }
+
+    private var appVersion: (short: String, build: String) {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = info?["CFBundleVersion"] as? String ?? "Unknown"
+        return (short, build)
     }
 
     private func startEditing(_ item: TodoItem) {
